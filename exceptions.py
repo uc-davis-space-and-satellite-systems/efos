@@ -1,0 +1,2 @@
+class InvalidDirectionCosineMatrix(Exception):
+    pass

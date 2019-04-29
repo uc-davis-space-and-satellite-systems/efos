@@ -1,5 +1,31 @@
+from exceptions import InvalidDirectionCosineMatrix
 import numpy as np
 import pysnooper
+
+# direction cosine matrix to euler angles
+# https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+def dcm_to_euler(dcm):
+    # verify that dcm is valid
+    err = np.linalg.norm(np.identity(3, dtype=dcm.dtype) - np.dot(dcm.T, dcm))
+    if err > 1e-6:
+        raise InvalidDirectionCosineMatrix
+
+    sy = np.sqrt((dcm[0, 0] * dcm[0, 0]) + (dcm[1, 0] * dcm[1, 0]))
+
+    theta_r = 0.0
+    theta_p = 0.0
+    theta_y = 0.0
+
+    if sy > 1e-6:
+        theta_r = np.arctan2(dcm[2, 1] , dcm[2, 2])
+        theta_p = np.arctan2(-dcm[2, 0], sy)
+        theta_y = np.arctan2(dcm[1, 0], dcm[0, 0])
+    else:
+        theta_r = np.arctan2(-dcm[1, 2], dcm[1, 1])
+        theta_p = np.arctan2(-dcm[2, 0], sy)
+        theta_y = 0
+
+    return np.degrees([theta_r, theta_p, theta_y])
 
 # @pysnooper.snoop(depth=1)
 def triad(acc_meas, mag_meas, acc_ref, mag_ref):
@@ -28,15 +54,12 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     R_it = np.concatenate((t_1i, t_2i, t_3i)).T    # Construct DCM for reference frame
     R_bi = np.matmul(R_bt, R_it.T)      # Construct DCM from reference frame to body frame
 
-    theta_roll = np.arctan2(-1*R_bi.item((1,2)), R_bi.item((2,2)))      # Euler angle from x-axis
-    theta_pitch = np.arctan2(R_bi.item((0,2)), np.sqrt(np.power(R_bi.item((0,0)), 2) + np.power(R_bi.item((0,0)), 2)))  #Euler angle from y-axis
-    theta_yaw = np.arctan2(-1*R_bi.item((0,1)), R_bi.item((1,1)))   # Euler angle from z-axis
+    # TODO debug statements
+    print("TRIAD DCM:")
+    print(R_bi)
+    print()
 
-    theta_roll = np.degrees(theta_roll)       # Convert Euler Angles from radians
-    theta_pitch = np.degrees(theta_pitch)     # to degrees
-    theta_yaw = np.degrees(theta_yaw)
-
-    return [theta_roll, theta_pitch, theta_yaw]
+    return dcm_to_euler(R_bi)
 
 if __name__ == "__main__":
     acc_meas = np.matrix([0, 0, -1])    # accelerometer vector in body frame

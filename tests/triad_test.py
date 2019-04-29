@@ -18,9 +18,9 @@ if __name__ == "__main__":
     print("Mag:", mag_meas)
     print()
 
-    theta_roll = 0.0
-    theta_pitch = 45.0
-    theta_yaw = 0.0
+    theta_roll = 90.0
+    theta_pitch = 1.0
+    theta_yaw = 43.12323
 
     print("Input Rotation:")
     print("Roll:", theta_roll)

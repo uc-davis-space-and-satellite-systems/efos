@@ -2,7 +2,10 @@ import numpy as np
 
 def to_unit_vector(vec):
     np_vec = np.array(vec)
-    return np_vec / np.sqrt((np_vec ** 2).sum())
+    if np_vec.all() != 0:
+        np_vec /= np.sqrt((np_vec ** 2).sum())
+
+    return np_vec
 
 if __name__ == "__main__":
     vec = [0, 1, 0]
