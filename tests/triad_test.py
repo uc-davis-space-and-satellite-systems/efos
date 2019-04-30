@@ -4,10 +4,7 @@ sys.path.append("..")
 import numpy as np
 import triad
 
-if __name__ == "__main__":
-    # https://stackoverflow.com/questions/22222818/how-to-printing-numpy-array-with-3-decimal-places
-    np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
-
+def test_triad(r, p, y):
     acc_meas = np.array([0.0, 0.0, -1.0])
     mag_meas = np.array([1.0, 0.0, 0.0])
     acc_ref = np.array([0.0, 0.0, -1.0]) # constant reference vector
@@ -18,9 +15,9 @@ if __name__ == "__main__":
     print("Mag:", mag_meas)
     print()
 
-    theta_roll = 90.0
-    theta_pitch = 1.0
-    theta_yaw = 43.12323
+    theta_roll = r
+    theta_pitch = p
+    theta_yaw = y
 
     print("Input Rotation:")
     print("Roll:", theta_roll)
@@ -76,7 +73,31 @@ if __name__ == "__main__":
     print()
 
     rot_triad = triad.triad(acc_meas_rot, mag_meas_rot, acc_ref, mag_ref)
+    rot_input = np.degrees([-theta_roll, -theta_pitch, -theta_yaw])
+    valid = np.allclose(rot_triad, rot_input)
 
     print("Output Rotations:")
-    print("Input:", np.degrees([-theta_roll, -theta_pitch, -theta_yaw]))
+    print("Input:", rot_input)
     print("Output:", rot_triad)
+    print("Valid:", valid)
+
+    return valid
+
+if __name__ == "__main__":
+    # https://stackoverflow.com/questions/22222818/how-to-printing-numpy-array-with-3-decimal-places
+    np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
+
+    test_triad(-180, 95, 3)
+
+    '''
+    valid_cnt = 0
+    total_cnt = 360**3
+
+    for r in range(-180, 180):
+        for p in range(-180, 180):
+            for y in range(-180, 180):
+                valid = test_triad(r, p, y)
+                if valid: valid_cnt += 1
+                print("[", r, p, y, "]:", valid, valid_cnt, "/", total_cnt)
+
+    '''

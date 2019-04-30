@@ -2,7 +2,9 @@ import numpy as np
 
 def to_unit_vector(vec):
     np_vec = np.array(vec)
-    if np_vec.all() != 0:
+
+    # TODO make sure these singularity checks actually work
+    if np_vec.any():
         np_vec /= np.sqrt((np_vec ** 2).sum())
 
     return np_vec

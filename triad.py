@@ -37,7 +37,8 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     t_1b = v_1b                     # First basis vector in body frame
     t_2b = np.cross(v_1b, v_2b)     # Second basis vector in body frame
 
-    if t_2b.all() != 0:
+    # TODO make sure these singularity checks actually work
+    if t_2b.any():
         t_2b = np.divide(t_2b, np.linalg.norm(t_2b))    # Normalize second basis vector
 
     t_3b = np.cross(t_1b, t_2b)     # Third basis vector in body frame
@@ -45,7 +46,8 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     t_1i = v_1i                     # First basis vector in reference frame
     t_2i = np.cross(v_1i, v_2i)     # Second basis vector in reference frame
 
-    if t_2i.all() != 0:
+    # TODO make sure these singularity checks actually work
+    if t_2i.any():
         t_2i = np.divide(t_2i, np.linalg.norm(t_2i))    # Normalize second basis vector
 
     t_3i = np.cross(t_1i, t_2i)     # Third basis vector in reference frame
