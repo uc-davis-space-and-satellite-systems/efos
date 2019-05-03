@@ -18,7 +18,7 @@ AK8963_CM8HZ         = 0x02              # mode for continuous measuring periodi
 AK8963_OUTPUT_LENGTH = 0x01              # setting for 16 bit output
 AK8963_SCALE_RES     = 4912.0 / 32760.0  # scale resolution for 16 bit (32760) output; 4912 = max magnetic flux density
 
-bus = smbus.SMBus(1)
+bus = smbus.SMBus(1) # should this be a class variable?
 
 class MPU9250:
     def __init__(self):
@@ -32,16 +32,18 @@ class MPU9250:
         self.mag_y_sensitivity = 0
         self.mag_z_sensitivity = 0
 
+        self.enable_passthrough()
         self.init_mag()
+        self.update_mag_axis_sensitivity()
 
-    def twos_complement(val, num_bits):
+    def twos_complement(self, val, num_bits):
         mask_one = 1 << (num_bits - 1)
         mask_two = 1 << num_bits
         if val & mask_one != 0:
             val = val - mask_two
         return val
 
-    def unit_vector(x, y, z):
+    def unit_vector(self, x, y, z):
         magnitude = (x**2 + y**2 + z**2)**0.5
         return (x / magnitude, y / magnitude, z / magnitude)
 
@@ -51,8 +53,12 @@ class MPU9250:
         word = (high << 8) + low
         return self.twos_complement(word, 16)
 
-    def word(low, high):
+    def word(self, low, high):
         return (high << 8) | low
+
+    def enable_passthrough(self):
+        bus.write_byte_data(MPU_ADDRESS, 0x6A, 0x00) # disable i2c master controller
+        bus.write_byte_data(MPU_ADDRESS, 0x37, 0x02) # enable i2c passthrough
 
     def init_mag(self):
         self.change_mag_mode(AK8963_PWR_DOWN)
@@ -60,13 +66,13 @@ class MPU9250:
 
     def update_mag_axis_sensitivity(self):
         data = bus.read_i2c_block_data(AK8963_ADDRESS, AK8963_ASAX, 3)
-        self.mag_x_sensitivity = self.twos_complement(data[0], 8)
-        self.mag_y_sensitivity = self.twos_complement(data[0], 8)
-        self.mag_z_sensitivity = self.twos_complement(data[0], 8)
+        self.mag_x_sensitivity = 0.5 * (data[0] - 128) / 128.0 + 1.0
+        self.mag_y_sensitivity = 0.5 * (data[1] - 128) / 128.0 + 1.0
+        self.mag_z_sensitivity = 0.5 * (data[2] - 128) / 128.0 + 1.0
         self.change_mag_mode(AK8963_PWR_DOWN)
-        self.change_mag_mode(AK8963_CM8HZ)
+        self.change_mag_mode((AK8963_OUTPUT_LENGTH << 4 | AK8963_CM8HZ))
 
-    def change_mag_mode(mode):
+    def change_mag_mode(self, mode):
         data = (AK8963_OUTPUT_LENGTH << 4) | mode
         bus.write_byte_data(AK8963_ADDRESS, AK8963_CNTL1, data)
 
@@ -86,11 +92,10 @@ class MPU9250:
 
 if __name__ == "__main__":
     mpu9250 = MPU9250()
-    mpu9250.update_mag_axis_sensitivity()
 
     while True:
         mpu9250.update_acc_reading()
         mpu9250.update_mag_reading()
-        print (mpu9250.acc_x, mpu9250.acc_y, mpu9250.acc_z)
-        print (mpu9250.mag_x, mpu9250.mag_y, mpu9250.mag_z)
-        time.sleep(1.5)
+        print(mpu9250.acc_x, mpu9250.acc_y, mpu9250.acc_z)
+        print(mpu9250.mag_x, mpu9250.mag_y, mpu9250.mag_z)
+        time.sleep(0.1)

@@ -57,9 +57,9 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     R_bi = np.matmul(R_bt, R_it.T)      # Construct DCM from reference frame to body frame
 
     # TODO debug statements
-    print("TRIAD DCM:")
-    print(R_bi)
-    print()
+    # print("TRIAD DCM:")
+    # print(R_bi)
+    # print()
 
     return dcm_to_euler(R_bi)
 
