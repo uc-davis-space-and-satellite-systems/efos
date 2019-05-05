@@ -1,0 +1,16 @@
+{
+  "name": "mission_control",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "nodemon": "^1.19.0",
+    "socket.io": "^2.1.1"
+  }
+}

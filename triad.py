@@ -1,6 +1,8 @@
-from exceptions import InvalidDirectionCosineMatrix
+import logging, pysnooper
 import numpy as np
-import pysnooper
+from exceptions import InvalidDirectionCosineMatrix
+
+logger = logging.getLogger(__name__)
 
 # direction cosine matrix to euler angles
 # https://www.learnopencv.com/rotation-matrix-to-euler-angles/
@@ -56,10 +58,7 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     R_it = np.concatenate((t_1i, t_2i, t_3i)).T    # Construct DCM for reference frame
     R_bi = np.matmul(R_bt, R_it.T)      # Construct DCM from reference frame to body frame
 
-    # TODO debug statements
-    # print("TRIAD DCM:")
-    # print(R_bi)
-    # print()
+    logger.debug("TRIAD DCM: {}".format(R_bi.flatten()))
 
     return dcm_to_euler(R_bi)
 

@@ -99,5 +99,4 @@ if __name__ == "__main__":
                 valid = test_triad(r, p, y)
                 if valid: valid_cnt += 1
                 print("[", r, p, y, "]:", valid, valid_cnt, "/", total_cnt)
-
     '''
