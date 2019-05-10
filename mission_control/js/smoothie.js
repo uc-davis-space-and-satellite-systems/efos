@@ -88,6 +88,11 @@
  *        Fix bug when hiding tooltip element, by @ralphwetzel (#96)
  *        Support intermediate y-axis labels, by @beikeland (#99)
  * v1.35: Fix issue with responsive mode at high DPI, by @drewnoakes (#101)
+ * v1.36: Add tooltipLabel to ITimeSeriesPresentationOptions.
+ *        If tooltipLabel is present, tooltipLabel displays inside tooltip
+ *        next to value, by @jackdesert (#102)
+ *        Fix bug rendering issue in series fill when using scroll backwards, by @olssonfredrik
+ *        Add title option, by @mesca
  */
 
 ;(function(exports) {
@@ -297,6 +302,14 @@
    *     showIntermediateLabels: false,          // shows intermediate labels between min and max values along y axis
    *     intermediateLabelSameAxis: true,
    *   },
+   *   title
+   *   {
+   *     text: '',                               // the text to display on the left side of the chart
+   *     fillStyle: '#ffffff',                   // colour for text
+   *     fontSize: 15,
+   *     fontFamily: 'sans-serif',
+   *     verticalAlign: 'middle'                 // one of 'top', 'middle', or 'bottom'
+   *   },
    *   tooltip: false                            // show tooltip when mouse is over the chart
    *   tooltipLine: {                            // properties for a vertical line at the cursor position
    *     lineWidth: 1,
@@ -329,10 +342,16 @@
   /** Formats the HTML string content of the tooltip. */
   SmoothieChart.tooltipFormatter = function (timestamp, data) {
       var timestampFormatter = this.options.timestampFormatter || SmoothieChart.timeFormatter,
-          lines = [timestampFormatter(new Date(timestamp))];
+          lines = [timestampFormatter(new Date(timestamp))],
+          label;
 
       for (var i = 0; i < data.length; ++i) {
+        label = data[i].series.options.tooltipLabel || ''
+        if (label !== ''){
+            label = label + ' ';
+        }
         lines.push('<span style="color:' + data[i].series.options.strokeStyle + '">' +
+        label +
         this.options.yMaxFormatter(data[i].value, this.options.labels.precision) + '</span>');
       }
 
@@ -375,6 +394,13 @@
       precision: 2,
       showIntermediateLabels: false,
       intermediateLabelSameAxis: true,
+    },
+    title: {
+      text: '',
+      fillStyle: '#ffffff',
+      fontSize: 15,
+      fontFamily: 'monospace',
+      verticalAlign: 'middle'
     },
     horizontalLines: [],
     tooltip: false,
@@ -433,7 +459,8 @@
    * {
    *   lineWidth: 1,
    *   strokeStyle: '#ffffff',
-   *   fillStyle: undefined
+   *   fillStyle: undefined,
+   *   tooltipLabel: undefined
    * }
    * </pre>
    */
@@ -572,13 +599,7 @@
 
     var el = this.getTooltipEl();
     el.style.top = Math.round(this.mousePageY) + 'px';
-
-    if (this.mousePageX + el.offsetWidth + 25 > window.innerWidth) {
-        el.style.left = Math.round(this.mousePageX - el.offsetWidth) + 'px';
-    } else {
-        el.style.left = Math.round(this.mousePageX) + 'px';
-    }
-
+    el.style.left = Math.round(this.mousePageX) + 'px';
     this.updateTooltip();
   };
 
@@ -895,13 +916,14 @@
       // Draw the line...
       context.beginPath();
       // Retain lastX, lastY for calculating the control points of bezier curves.
-      var firstX = 0, lastX = 0, lastY = 0;
+      var firstX = 0, firstY = 0, lastX = 0, lastY = 0;
       for (var i = 0; i < dataSet.length && dataSet.length !== 1; i++) {
         var x = timeToXPixel(dataSet[i][0]),
             y = valueToYPixel(dataSet[i][1]);
 
         if (i === 0) {
           firstX = x;
+          firstY = y;
           context.moveTo(x, y);
         } else {
           switch (chartOptions.interpolation) {
@@ -946,9 +968,15 @@
       if (dataSet.length > 1) {
         if (seriesOptions.fillStyle) {
           // Close up the fill region.
-          context.lineTo(dimensions.width + seriesOptions.lineWidth + 1, lastY);
-          context.lineTo(dimensions.width + seriesOptions.lineWidth + 1, dimensions.height + seriesOptions.lineWidth + 1);
-          context.lineTo(firstX, dimensions.height + seriesOptions.lineWidth);
+          if (chartOptions.scrollBackwards) {
+            context.lineTo(lastX, dimensions.height + seriesOptions.lineWidth);
+            context.lineTo(firstX, dimensions.height + seriesOptions.lineWidth);
+            context.lineTo(firstX, firstY);
+          } else {
+            context.lineTo(dimensions.width + seriesOptions.lineWidth + 1, lastY);
+            context.lineTo(dimensions.width + seriesOptions.lineWidth + 1, dimensions.height + seriesOptions.lineWidth + 1);
+            context.lineTo(firstX, dimensions.height + seriesOptions.lineWidth);
+          }
           context.fillStyle = seriesOptions.fillStyle;
           context.fill();
         }
@@ -979,24 +1007,9 @@
           minValueString = chartOptions.yMinFormatter(this.valueRange.min, chartOptions.labels.precision),
           maxLabelPos = chartOptions.scrollBackwards ? 0 : dimensions.width - context.measureText(maxValueString).width - 2,
           minLabelPos = chartOptions.scrollBackwards ? 0 : dimensions.width - context.measureText(minValueString).width - 2;
-
-      ///// start of "values on axis" patch 1/2 -
-      // https://groups.google.com/forum/#!topic/smoothie-charts/7DcXTVffR5Q
-      var numSections = chartOptions.grid.verticalSections;
-      var deltaValue = (this.valueRange.max-this.valueRange.min) / numSections;
-      var deltaValueString = "";
-      //// end of "values on axis" patch 1/2
-
       context.fillStyle = chartOptions.labels.fillStyle;
       context.fillText(maxValueString, maxLabelPos, chartOptions.labels.fontSize);
       context.fillText(minValueString, minLabelPos, dimensions.height - 2);
-
-      //// start "values on axis" patch 2/2
-      for (var i = 1; i < numSections; i++) {
-        deltaValueString = parseFloat(this.valueRange.max -i*deltaValue).toFixed(2);
-        context.fillText(deltaValueString, dimensions.width - context.measureText(deltaValueString).width - 2, parseFloat(dimensions.height*i/numSections - 2).toFixed(2));
-      }
-      //// end of "values on axis" patch 2/2
     }
 
     // Display intermediate y axis labels along y-axis to the left of the chart
@@ -1053,6 +1066,24 @@
       }
     }
 
+    // Display title.
+    if (chartOptions.title.text !== '') {
+      context.font = chartOptions.title.fontSize + 'px ' + chartOptions.title.fontFamily;
+      var titleXPos = chartOptions.scrollBackwards ? dimensions.width - context.measureText(chartOptions.title.text).width - 2 : 2;
+      if (chartOptions.title.verticalAlign == 'bottom') {
+        context.textBaseline = 'bottom';
+        var titleYPos = dimensions.height;
+      } else if (chartOptions.title.verticalAlign == 'middle') {
+        context.textBaseline = 'middle';
+        var titleYPos = dimensions.height / 2;
+      } else {
+        context.textBaseline = 'top';
+        var titleYPos = 0;
+      }
+      context.fillStyle = chartOptions.title.fillStyle;
+      context.fillText(chartOptions.title.text, titleXPos, titleYPos);
+    }
+
     context.restore(); // See .save() above.
   };
 
@@ -1066,3 +1097,4 @@
   exports.SmoothieChart = SmoothieChart;
 
 })(typeof exports === 'undefined' ? this : exports);
+
