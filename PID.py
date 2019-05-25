@@ -19,14 +19,14 @@ class PID:
 
     def clear(self): ##setting everything to zero..
 
-        self.Set = 0.0
-
+        self.set = 0.0
         self.PTerm = 0.0
         self.ITerm = 0.0
         self.DTerm = 0.0
         self.preverror = 0.0
         self.int_error = 0.0
-        self.windup_guard = 10. ##subject to change based on what we  
+        
+        self.windup_guard = 1.0 ##subject to change based on what we  
         self.output = 0.0
     
     def update(self) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
