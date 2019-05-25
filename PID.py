@@ -3,19 +3,20 @@ import time
 import matplotlib.pyplot as plt
 class PID: 
     def __init__(self, current_yaw, set_yaw): ##P will need tuning, but a good starting point is 1 divided by the ‘encoder ticks per sample’ 
+        self.clear()
         self.plotp = []
         self.ploti = []
         self.plotd = []
         self.value = current_yaw
-        self.Kp = 0.2
-        self.Ki = 0.1 
-        self.Kd = 0.05
+        self.Kp = 0.1
+        self.Ki = 0.0
+        self.Kd = 0.025
         self.set = set_yaw##make this value about 75% of the ‘encoder ticks per sample’
         self.settime = 1.0 ## can change this to create larger or smaller intervals
         self.currenttime = time.time()
         self.lasttime = self.currenttime
 
-        self.clear()
+        
 
     def clear(self): ##setting everything to zero..
 
@@ -25,8 +26,7 @@ class PID:
         self.DTerm = 0.0
         self.preverror = 0.0
         self.int_error = 0.0
-        
-        self.windup_guard = 1.0 ##subject to change based on what we  
+        #self.windup_guard = 10.0 ##subject to change based on what we  
         self.output = 0.0
     
     def update(self) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
@@ -38,11 +38,11 @@ class PID:
 
         if deltime >= self.settime :
             self.PTerm = self.Kp * error
-            self.ITerm += error * deltime 
-            if (self.ITerm < -self.windup_guard):
-                self.ITerm = -self.windup_guard
-            elif (self.ITerm > self.windup_guard):
-                self.ITerm = self.windup_guard
+            # self.ITerm += error * deltime 
+            # if (self.ITerm < -self.windup_guard):
+            #     self.ITerm = -self.windup_guard
+            # elif (self.ITerm > self.windup_guard):
+            #     self.ITerm = self.windup_guard
             self.DTerm = 0.0
             if deltime > 0 :
                 self.DTerm = delerror / deltime
@@ -65,7 +65,7 @@ class PID:
         ##self.Ki = int_gain 
     ##def setKd(self, der_gain) :
         ##self.Kd = der_gain
-    def setWindup(self, windup):
+    #def setWindup(self, windup):
         """Integral windup, also known as integrator windup or reset windup,
         refers to the situation in a PID feedback controller where
         a large change in setpoint occurs (say a positive change)
@@ -75,7 +75,7 @@ class PID:
         (offset by errors in the other direction).
         The specific problem is the excess overshooting.
         """
-        self.windup_guard = windup
+        #self.windup_guard = windup
 
     def setsampleTime(self, sample_time):
         self.sample_time = sample_time

@@ -1,9 +1,9 @@
 from PID import PID
-set_yaw = 10
+set_yaw = 0
 current_yaw = 50
 pid = PID(set_yaw,current_yaw)
 while True:
-    pid.setWindup(set_yaw) ##decide on what winup we should use, what is the maximal change that can occur in an ideal environment?
+    # pid.setWindup(set_yaw) ##decide on what winup we should use, what is the maximal change that can occur in an ideal environment?
     print(pid.update())
 while False:
     pid.clear()
