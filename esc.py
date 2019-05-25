@@ -1,11 +1,11 @@
 import pigpio
 import time
 
-ESC_PIN        = 12         # ESC_PIN to write to
-PWM_RANGE_MAX  = 40000  # maximum writable pwm value
-PWM_RANGE_MIN  = 26400  # minimum writable pwm value
-PWM_FREQ       = 500        # frequency of pwm pulses (1000 pulses / s)
-PWM_READ_DELAY = 2          # delay in seconds after setting duty cycle
+ESC_PIN        = 12      # ESC_PIN to write to
+PWM_RANGE_MAX  = 40000   # maximum writable pwm value
+PWM_RANGE_MIN  = 26400   # minimum writable pwm value
+PWM_FREQ       = 500     # frequency of pwm pulses (1000 pulses / s)
+PWM_READ_DELAY = 2       # delay in seconds after setting duty cycle
 
 pi = pigpio.pi()
 
