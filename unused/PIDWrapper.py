@@ -11,5 +11,3 @@ while False:
 ##If the motor adjustments are too aggressive, swinging between too fast and too slow, reduce the constant.
 ##   If the motor speed isn’t changing fast enough, increase the constant.
 ##  Make any change in small increments; even a very small change can have a dramatic effect.
-
-

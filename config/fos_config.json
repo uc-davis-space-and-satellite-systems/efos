@@ -1,3 +1,6 @@
 {
-    "enable_mission_control": true
+    "enable_mission_control": false,
+    "speed_pin_esc": 12,
+    "dir_pin1_esc": 13,
+    "dir_pin2_esc": 14
 }

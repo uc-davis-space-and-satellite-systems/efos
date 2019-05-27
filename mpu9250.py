@@ -18,7 +18,7 @@ AK8963_CM8HZ         = 0x02              # mode for continuous measuring periodi
 AK8963_OUTPUT_LENGTH = 0x01              # setting for 16 bit output
 AK8963_SCALE_RES     = 4912.0 / 32760.0  # scale resolution for 16 bit (32760) output; 4912 = max magnetic flux density
 
-bus = smbus.SMBus(1) # should this be a class variable?
+bus = smbus.SMBus(1) # TODO should this be a class variable?
 
 class MPU9250:
     def __init__(self):

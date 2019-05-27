@@ -1,8 +1,8 @@
 ##Referenced https://github.com/ivmech/ivPID/blob/master/PID.py and ht tps://en.wikipedia.org/wiki/PID_controller#Manual_tuning
 import time
 import matplotlib.pyplot as plt
-class PID: 
-    def __init__(self, current_yaw, set_yaw): ##P will need tuning, but a good starting point is 1 divided by the ‘encoder ticks per sample’ 
+class PID:
+    def __init__(self, current_yaw, set_yaw): ##P will need tuning, but a good starting point is 1 divided by the ‘encoder ticks per sample’
         self.clear()
         self.plotp = []
         self.ploti = []
@@ -16,7 +16,7 @@ class PID:
         self.currenttime = time.time()
         self.lasttime = self.currenttime
 
-        
+
 
     def clear(self): ##setting everything to zero..
 
@@ -26,9 +26,9 @@ class PID:
         self.DTerm = 0.0
         self.preverror = 0.0
         self.int_error = 0.0
-        #self.windup_guard = 10.0 ##subject to change based on what we  
+        #self.windup_guard = 10.0 ##subject to change based on what we
         self.output = 0.0
-    
+
     def update(self) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
         ##Insert PID calculation in order to visualize how PID is working in unison with hardware
         error = self.set - self.value
@@ -38,7 +38,7 @@ class PID:
 
         if deltime >= self.settime :
             self.PTerm = self.Kp * error
-            # self.ITerm += error * deltime 
+            # self.ITerm += error * deltime
             # if (self.ITerm < -self.windup_guard):
             #     self.ITerm = -self.windup_guard
             # elif (self.ITerm > self.windup_guard):
@@ -46,7 +46,7 @@ class PID:
             self.DTerm = 0.0
             if deltime > 0 :
                 self.DTerm = delerror / deltime
-            
+
             self.lasttime = self.currenttime
             self.preverror = error
 
@@ -62,7 +62,7 @@ class PID:
     ##def setKp(self, prop_gain) :
         ##self.Kp = prop_gain
     ##def setKi(self, int_gain) :
-        ##self.Ki = int_gain 
+        ##self.Ki = int_gain
     ##def setKd(self, der_gain) :
         ##self.Kd = der_gain
     #def setWindup(self, windup):

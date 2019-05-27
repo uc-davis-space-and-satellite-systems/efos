@@ -3,7 +3,7 @@ const express = require('express');
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const port1 = 9990;
+const port1 = 9998;
 const port2 = process.env.PORT || 3010;
 
 app.use("/js", express.static(__dirname + '/js'));

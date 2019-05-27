@@ -9,6 +9,7 @@ import numpy as np
 import utils, triad
 import mission_control as mc
 from mpu9250 import MPU9250
+from esc import ESC
 
 # configure terminate signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -20,12 +21,18 @@ with open("./config/fos_config.json", 'r') as f:
 
 # @pysnooper.snoop(depth=1)
 def main():
-    logger.info("starting imu loop...")
+    logger.debug("initializing imu...")
     imu = MPU9250() # initialize mpu9250
+
+    logger.debug("initializing esc...")
+    esc_hdd = ESC(config['speed_pin_esc'], config['dir_pin1_esc'], config['dir_pin2_esc'])
+    esc_hdd.init_sequence() # initialize hdd esc
 
     if config['enable_mission_control']:
         logger.info("connecting to mission control server...")
         mc.connect() # connect to mission control server
+
+    logger.info("starting main loop...")
 
     while True:
         imu.update_acc_reading() # update acc values
