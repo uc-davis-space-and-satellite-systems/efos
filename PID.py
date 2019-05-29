@@ -1,25 +1,19 @@
 ##Referenced https://github.com/ivmech/ivPID/blob/master/PID.py and ht tps://en.wikipedia.org/wiki/PID_controller#Manual_tuning
 import time
 import matplotlib.pyplot as plt
-class PID:
-    def __init__(self, current_yaw, set_yaw): ##P will need tuning, but a good starting point is 1 divided by the ‘encoder ticks per sample’
+class PID: 
+    def __init__(self): ##P will need tuning, but a good starting point is 1 divided by the ‘encoder ticks per sample’ 
         self.clear()
-        self.plotp = []
-        self.ploti = []
-        self.plotd = []
-        self.value = current_yaw
-        self.Kp = 0.1
+        self.Kp = 0.2
         self.Ki = 0.0
-        self.Kd = 0.025
-        self.set = set_yaw##make this value about 75% of the ‘encoder ticks per sample’
-        self.settime = 1.0 ## can change this to create larger or smaller intervals
+        self.Kd = 0.0
+        self.settime = 0.01 ## can change this to create larger or smaller intervals
         self.currenttime = time.time()
         self.lasttime = self.currenttime
 
 
 
     def clear(self): ##setting everything to zero..
-
         self.set = 0.0
         self.PTerm = 0.0
         self.ITerm = 0.0
@@ -29,13 +23,13 @@ class PID:
         #self.windup_guard = 10.0 ##subject to change based on what we
         self.output = 0.0
 
-    def update(self) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
+
+    def update(self, value, achieve) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
         ##Insert PID calculation in order to visualize how PID is working in unison with hardware
-        error = self.set - self.value
+        error = achieve - value
         self.currenttime = time.time()
         deltime = self.currenttime - self.lasttime #delta time!
         delerror = error - self.preverror #delta error!
-
         if deltime >= self.settime :
             self.PTerm = self.Kp * error
             # self.ITerm += error * deltime
@@ -52,11 +46,9 @@ class PID:
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
         ###PLOTTING PID
-        #p = self.plotp.append(self.PTerm)
-        #i = self.ploti.append(self.ITerm)
-        #d = self.plotd.append(self.DTerm)
-        #plt.plot((p,i,d,self.output),self.currenttime)
-        #plt.show
+        p = self.plotp.append(self.PTerm)
+        plt.plot(self.output,self.currenttime)
+        plt.show
         return self.output
 
     ##def setKp(self, prop_gain) :
