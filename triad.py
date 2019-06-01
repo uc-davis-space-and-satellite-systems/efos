@@ -12,20 +12,16 @@ def dcm_to_euler(dcm):
     if err > 1e-6:
         raise InvalidDirectionCosineMatrix
 
-    sy = np.sqrt((dcm[0, 0] * dcm[0, 0]) + (dcm[1, 0] * dcm[1, 0]))
-
     theta_r = 0.0
     theta_p = 0.0
-    theta_y = 0.0
+    theta_y = 0.0 
 
-    if sy > 1e-6:
-        theta_r = np.arctan2(dcm[2, 1] , dcm[2, 2])
-        theta_p = np.arctan2(-dcm[2, 0], sy)
-        theta_y = np.arctan2(dcm[1, 0], dcm[0, 0])
-    else:
-        theta_r = np.arctan2(-dcm[1, 2], dcm[1, 1])
-        theta_p = np.arctan2(-dcm[2, 0], sy)
-        theta_y = 0
+    theta_r = np.arctan2(dcm[1, 2], dcm[2, 2])
+    c2 = np.sqrt((dcm[0, 0] * dcm[0, 0]) + (dcm[0, 1] * dcm[0, 1]))
+    theta_p = np.arctan2(-dcm[0, 2], c2)
+    s1 = np.sin(theta_r)
+    c1 = np.cos(theta_r)
+    theta_y = np.arctan2(s1*dcm[2, 0] - c1*dcm[1, 0], c1*dcm[1, 1] - s1*dcm[2, 1])
 
     return np.degrees([theta_r, theta_p, theta_y])
 
@@ -58,6 +54,8 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     R_it = np.concatenate((t_1i, t_2i, t_3i)).T    # Construct DCM for reference frame
     R_bi = np.matmul(R_bt, R_it.T)      # Construct DCM from reference frame to body frame
 
+    print(R_bi)
+    
     logger.debug("TRIAD DCM: {}".format(R_bi.flatten()))
 
     return dcm_to_euler(R_bi)

@@ -25,9 +25,13 @@ def test_triad(r, p, y):
     print("Yaw:", theta_yaw)
     print()
 
-    theta_roll = np.radians(-1 * theta_roll)
-    theta_pitch = np.radians(-1 * theta_pitch)
-    theta_yaw = np.radians(-1 * theta_yaw)
+    theta_roll = np.radians(theta_roll)
+    theta_pitch = np.radians(theta_pitch)
+    theta_yaw = np.radians(theta_yaw)
+    
+    print("Roll:", theta_roll)
+    print("Pitch:", theta_pitch)
+    print("Yaw:", theta_yaw)
 
     rot_y = np.array([
         [np.cos(theta_yaw), -1 * np.sin(theta_yaw), 0],
@@ -56,8 +60,8 @@ def test_triad(r, p, y):
     print(rot_y)
 
     # being verbose for some reason helps wtf??
-    rot_tmp = np.dot(rot_r, rot_p)
-    rot = np.dot(rot_tmp, rot_y)
+    rot_tmp = np.dot(rot_y, rot_p)
+    rot = np.dot(rot_tmp, rot_r)
     rot = rot.T
 
     print("RPY:")
@@ -73,7 +77,7 @@ def test_triad(r, p, y):
     print()
 
     rot_triad = triad.triad(acc_meas_rot, mag_meas_rot, acc_ref, mag_ref)
-    rot_input = np.degrees([-theta_roll, -theta_pitch, -theta_yaw])
+    rot_input = np.degrees([theta_roll, theta_pitch, theta_yaw])
     valid = np.allclose(rot_triad, rot_input)
 
     print("Output Rotations:")
@@ -87,7 +91,7 @@ if __name__ == "__main__":
     # https://stackoverflow.com/questions/22222818/how-to-printing-numpy-array-with-3-decimal-places
     np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
 
-    test_triad(-180, 95, 3)
+    test_triad(-123.0, 0.0, 23.0)
 
     '''
     valid_cnt = 0
