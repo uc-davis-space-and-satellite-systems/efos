@@ -6,7 +6,7 @@ import time
 # https://www.akm.com/akm/en/file/datasheet/AK8963C.pdf
 
 # TODO: store data in excel (time stamps, one column per )
-
+# constants defined below
 MPU_ADDRESS          = 0x68              # i2c address (AD0 LOW)
 ACCEL_XOUT_H         = 0x3B              # high byte of accelerometer x-axis data
 ACCEL_YOUT_H         = 0x3D              # high byte of accelerometer y-axis data
@@ -20,7 +20,6 @@ AK8963_FUSE_ROM      = 0x0F              # mode for reading Fuse ROM data; must 
 AK8963_CM8HZ         = 0x02              # mode for continuous measuring periodically at 8Hz; no transition to PWR DOWN needed
 AK8963_OUTPUT_LENGTH = 0x01              # setting for 16 bit output
 AK8963_SCALE_RES     = 4912.0 / 32760.0  # scale resolution for 16 bit (32760) output; 4912 = max magnetic flux density
-
 
 class MPU9250:
 
@@ -97,6 +96,8 @@ class MPU9250:
 
 
 if __name__ == "__main__":
+    # TODO we should make this a global variable
+    # in the main loop
     pi = pigpio.pi()
     mpu9250 = MPU9250(pi)
 
