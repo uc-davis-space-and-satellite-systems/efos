@@ -26,7 +26,8 @@ class PID:
 
     def update(self, value, achieve) : ##values from.. sun sensor.. reaction wheels... anything else? will have to modify this body of code to accomdate for more data points
         ##Insert PID calculation in order to visualize how PID is working in unison with hardware
-        error = achieve - value
+        error = achieve - value ##error for quaternions
+        
         self.currenttime = time.time()
         deltime = self.currenttime - self.lasttime #delta time!
         delerror = error - self.preverror #delta error!

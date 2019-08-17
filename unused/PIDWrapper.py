@@ -1,7 +1,7 @@
-from PID import PID
+from PID import update
 set_yaw = 0
-current_yaw = 50
-pid = PID(set_yaw,current_yaw)
+current_yaw = 180
+pid = update(value,achieve)
 while True:
     # pid.setWindup(set_yaw) ##decide on what winup we should use, what is the maximal change that can occur in an ideal environment?
     print(pid.update())
