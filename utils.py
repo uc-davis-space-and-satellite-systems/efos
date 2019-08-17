@@ -13,3 +13,4 @@ if __name__ == "__main__":
     vec = [-1508, 16452, -264]
     print("Vector: " + str(vec))
     print("Unit: " + str(to_unit_vector(vec)))
+##may not need this anymore

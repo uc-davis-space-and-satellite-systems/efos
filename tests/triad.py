@@ -6,65 +6,24 @@ logger = logging.getLogger(__name__)
 
 # direction cosine matrix to euler angles
 # https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-#Lecture slides from stanford... from adam
 def dcm_to_euler(dcm):
     # verify that dcm is valid
     err = np.linalg.norm(np.identity(3, dtype=dcm.dtype) - np.dot(dcm.T, dcm))
     if err > 1e-6:
         raise InvalidDirectionCosineMatrix
-    
-    # Calculate scalar part of quaternion   ##
-    q_0 = np.sqrt(0.25*(1+np.trace(dcm)))
-    
-    # Calculate absolute values of vector componenets of quaternion
-    q_1 = np.sqrt(0.25*(1+2*dcm[0,0]-np.trace(dcm)))
-    q_2 = np.sqrt(0.25*(1+2*dcm[1,1]-np.trace(dcm)))
-    q_3 = np.sqrt(0.25*(1+2*dcm[2,2]-np.trace(dcm)))
 
-    # Check sign for i component
-    if np.sign(q_0*q_1) == np.sign(0.25*(dcm[1,2]-dcm[2,1])):
-        q_1 = q_1
-    else:
-        q_1 = -1*q_1
-    
-    # Check sign for j component
-    if np.sign(q_0*q_2) == np.sign(0.25*(dcm[2,0]-dcm[0,2])):
-        q_2 = q_2
-    else:
-        q_2 = -1*q_2
+    theta_r = 0.0
+    theta_p = 0.0
+    theta_y = 0.0 
 
-    # Check sign for k component
-    if np.sign(q_0*q_3) == np.sign(0.25*(dcm[0,1]-dcm[1,0])):
-        q_3 = q_3
-    else:
-        q_3 = -1*q_3
+    theta_r = np.arctan2(dcm[1, 2], dcm[2, 2])
+    c2 = np.sqrt((dcm[0, 0] * dcm[0, 0]) + (dcm[0, 1] * dcm[0, 1]))
+    theta_p = np.arctan2(-dcm[0, 2], c2)
+    s1 = np.sin(theta_r)
+    c1 = np.cos(theta_r)
+    theta_y = np.arctan2(s1*dcm[2, 0] - c1*dcm[1, 0], c1*dcm[1, 1] - s1*dcm[2, 1])
 
-    # Display quaternion
-    q = [q_0, q_1, q_2, q_3]
-
-    print("q:")
-    print(q)
-    print()
-
-    # Extract Euler angles from quaternion
-    #angle_x = np.arctan2(2*(q_0*q_1 + q_2*q_3), 1 - 2*(np.power(q_1, 2) + np.power(q_2, 2)))
-    #angle_y = np.arcsin(2*(q_0*q_2 - q_3*q_1))
-    #angle_z = np.arctan2(2*(q_0*q_3 + q_1*q_2), 1 - 2*(np.power(q_2, 2) + np.power(q_3, 2)))
-
-    # Convert Euler angles to degrees
-    #angle_x = np.degrees(angle_x)
-    #angle_y = np.degrees(angle_y)
-    #angle_z = np.degrees(angle_z)
-
-    # Display Euler angles
-    #angles = [angle_x, angle_y, angle_z]
-
-    #print("Euler angles:")
-    #print(angles)
-    #print()
-
-    #return angles
-    ##
+    return np.degrees([theta_r, theta_p, theta_y])
 
 # @pysnooper.snoop(depth=1)
 def triad(acc_meas, mag_meas, acc_ref, mag_ref):
@@ -94,10 +53,8 @@ def triad(acc_meas, mag_meas, acc_ref, mag_ref):
     R_bt = np.concatenate((t_1b, t_2b, t_3b)).T    # Construct DCM for body frame
     R_it = np.concatenate((t_1i, t_2i, t_3i)).T    # Construct DCM for reference frame
     R_bi = np.matmul(R_bt, R_it.T)      # Construct DCM from reference frame to body frame
-    
-    print("R_bi:")
+
     print(R_bi)
-    print()
     
     logger.debug("TRIAD DCM: {}".format(R_bi.flatten()))
 

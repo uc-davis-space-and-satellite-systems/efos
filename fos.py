@@ -33,7 +33,8 @@ def main():
         mc.connect() # connect to mission control server
 
     logger.info("starting main loop...")
-
+    #acc_array = np.zeros(3,1)
+    #mag_array = np.zeros(3,1)
     while True:
         imu.update_acc_reading() # update acc values
         imu.update_mag_reading() # update mag values
@@ -44,6 +45,11 @@ def main():
         # TODO don't recreate numpy array every time, heavy computation
         acc_meas = utils.to_unit_vector(acc_meas_raw) # acc unit vector
         mag_meas = utils.to_unit_vector(mag_meas_raw) # mag unit vector
+
+        #acc_array[:,0] = acc_meas_raw
+        #mag_array[:,0] = mag_meas_raw
+        #acc_meas = numpy.linalg.oth(acc_array)
+        #mag_meas = numpu.linalg.oth(mag_array)
 
         acc_ref = np.array([0.0, 0.0, -1.0]) # acc ref vector
         mag_ref = np.array([1.0, 0.0, 0.0]) # mag ref vector
