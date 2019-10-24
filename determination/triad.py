@@ -41,11 +41,11 @@ def dcm_to_euler(dcm):
 
     # Display quaternion
     q = [q_0, q_1, q_2, q_3]
-
+    
     print("q:")
     print(q)
     print()
-
+    return q
     # Extract Euler angles from quaternion
     #angle_x = np.arctan2(2*(q_0*q_1 + q_2*q_3), 1 - 2*(np.power(q_1, 2) + np.power(q_2, 2)))
     #angle_y = np.arcsin(2*(q_0*q_2 - q_3*q_1))

@@ -10,6 +10,7 @@ import utils, triad
 import mission_control as mc
 from mpu9250 import MPU9250
 from esc import ESC
+import triad_2_PID
 
 # configure terminate signal, when we do ctrl C we want
 # to kill the entire program forcibly, not wait for the
@@ -39,7 +40,7 @@ def main():
     logger.info("starting main loop...")
     #acc_array = np.zeros(3,1)
     #mag_array = np.zeros(3,1)
-    while True:
+    while True: ## TODO This should be depedant on when we are actively tryin to fix ourselves: based on magnetic coils
         # fetch values from the IMU
         imu.update_acc_reading() # update acc values
         imu.update_mag_reading() # update mag values
@@ -48,10 +49,11 @@ def main():
         mag_meas_raw = [imu.mag_x, imu.mag_y * -1, imu.mag_z] # fix imu right hand rule
 
         # generate the necessary vectors for TRIAD
-        # TODO don't recreate numpy array every time, heavy memory computation
+        #DONE# don't recreate numpy array every time, heavy memory computation
         acc_meas = utils.to_unit_vector(acc_meas_raw) # acc unit vector
         mag_meas = utils.to_unit_vector(mag_meas_raw) # mag unit vector
 
+        # TODO if code below replaces code above and is more compoutationaly effecient
         #acc_array[:,0] = acc_meas_raw
         #mag_array[:,0] = mag_meas_raw
         #acc_meas = numpy.linalg.oth(acc_array)
@@ -67,8 +69,9 @@ def main():
 
         # compute the rotation matrix with the aforemened vectors
         rotation = triad.triad(acc_meas, mag_meas, acc_ref, mag_ref)
-
-        logger.debug("acc: {} mag: {} rotation: {}".format(acc_meas, mag_meas, rotation))
+        # TODO Make sure triad2PID works....
+        #correction=triad_2_PID(rotation) ##Utilize PID in seperate file and give back 'correct' rotation... for our understanding
+        logger.debug("acc: {} mag: {} rotation: {} correction: {}".format(acc_meas, mag_meas, rotation,correction))
 
         # broadcast all data to mission control server
         # this is the real-time gui thing
