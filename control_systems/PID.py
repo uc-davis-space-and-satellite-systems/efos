@@ -46,10 +46,6 @@ class PID:
             self.preverror = error
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
-        ###PLOTTING PID
-        p = self.plotp.append(self.PTerm)
-        plt.plot(self.output,self.currenttime)
-        plt.show
         return self.output
 
     ##def setKp(self, prop_gain) :

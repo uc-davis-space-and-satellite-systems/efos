@@ -10,7 +10,7 @@ import utils, triad
 import mission_control as mc
 from mpu9250 import MPU9250
 from esc import ESC
-import triad_2_PID
+import Triad_2_PID as t2p
 
 # configure terminate signal, when we do ctrl C we want
 # to kill the entire program forcibly, not wait for the
@@ -52,12 +52,14 @@ def main():
         #DONE# don't recreate numpy array every time, heavy memory computation
         acc_meas = utils.to_unit_vector(acc_meas_raw) # acc unit vector
         mag_meas = utils.to_unit_vector(mag_meas_raw) # mag unit vector
-
-        # TODO if code below replaces code above and is more compoutationaly effecient
+        
+        #
+        #           TODO if code below replaces code above and is more compoutationaly effecient
         #acc_array[:,0] = acc_meas_raw
         #mag_array[:,0] = mag_meas_raw
         #acc_meas = numpy.linalg.oth(acc_array)
         #mag_meas = numpu.linalg.oth(mag_array)
+        #
 
         acc_ref = np.array([0.0, 0.0, -1.0]) # acc ref vector
         mag_ref = np.array([1.0, 0.0, 0.0]) # mag ref vector
@@ -69,9 +71,13 @@ def main():
 
         # compute the rotation matrix with the aforemened vectors
         rotation = triad.triad(acc_meas, mag_meas, acc_ref, mag_ref)
-        # TODO Make sure triad2PID works....
-        #correction=triad_2_PID(rotation) ##Utilize PID in seperate file and give back 'correct' rotation... for our understanding
+        #
+        ###           TODO Make sure triad2PID works....
+        #correction=t2p.correct(rotation) ##Utilize PID in seperate file and give back 'correct' rotation... for our understanding
+        #logger.debug("acc: {} mag: {} rotation: {} correction: {}".format(acc_meas, mag_meas, rotation,correction))
+        #
         logger.debug("acc: {} mag: {} rotation: {} correction: {}".format(acc_meas, mag_meas, rotation,correction))
+
 
         # broadcast all data to mission control server
         # this is the real-time gui thing
