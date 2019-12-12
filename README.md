@@ -1,10 +1,8 @@
-# EFOS
-
-### :warning: Under Construction :warning:
+# FOS
 
 ### Run
 `python3 fos.py`
-
+ 
 ### Requirements
 - pysnooper
 - smbus
