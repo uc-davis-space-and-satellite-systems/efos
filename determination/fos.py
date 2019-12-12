@@ -1,86 +1,120 @@
-import logging, logging.config
-
-# setup global logger service
-logging.config.fileConfig('./config/logging_config.ini')
-logger = logging.getLogger(__name__)
-
-import time, signal, json, pysnooper
+import logging
+import logging.config
+import time
+import signal
+import json
+import pysnooper  # Is this needed?
 import numpy as np
-import utils, triad
+import utils
+import triad
 import mission_control as mc
 from mpu9250 import MPU9250
 from esc import ESC
 
-# configure terminate signal, when we do ctrl C we want
-# to kill the entire program forcibly, not wait for the
-# program to stop on its own
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-# fetch configuration data from the config file
-# contains various settings
+# Fetch configuration data from the config file. The file contains multiple
+# settings.
 config = None
 with open("./config/fos_config.json", 'r') as f:
     config = json.load(f)
 
+# Set up the global logger service.
+logging.config.fileConfig('./config/logging_config.ini')
+logger = logging.getLogger(__name__)
+if config['disable_logging']:
+    logging.disable(logging.CRITICAL)
+
+# Reconfigure the keyboard interrupt signal so that Ctrl-C kills the entire
+# program forcibly instead of letting the program stop on its own.
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
 # @pysnooper.snoop(depth=1)
+
+
+def get_updated_sensor_data(imu: MPU9250) -> tuple:
+    """Gets updated raw measures of the acceloremter and magnetometer.
+    Parameters
+    ----------
+    x : MPU9250
+        An instance of the MPU9250 sensor class.
+
+    Returns
+    -------
+    tuple
+        A tuple of two vectors, represented by lists. Each list represents a
+        vector [x, y, z]. The format is (accelerometer, magnetometer).
+    """
+
+    # Get new readings from the accelerometer and magnetometer.
+    imu.update_acc_reading()
+    imu.update_mag_reading()
+
+    # Calculate the raw measures by fixing the imu right hand rule.
+    raw_acc_measure = [imu.acc_y * -1, imu.acc_x, imu.acc_z * -1]
+    raw_mag_measure = [imu.mag_x, imu.mag_y * -1, imu.mag_z]
+
+    # Return a tuple of the calculated values.
+    return (raw_acc_measure, raw_mag_measure)
+
+
 def main():
-    logger.debug("initializing imu...")
-    imu = MPU9250() # initialize mpu9250, the imu
+    logger.debug("Initializing the imu...")
 
+    # Initialize the imu.
+    imu = MPU9250()
+
+    # Initialize the speed controller.
     logger.debug("initializing esc...")
-    esc_hdd = ESC(config['speed_pin_esc'], config['dir_pin1_esc'], config['dir_pin2_esc'])
-    esc_hdd.init_sequence() # perform the esc initialization sequence
+    esc_hdd = ESC(config['speed_pin_esc'],
+                  config['dir_pin1_esc'], config['dir_pin2_esc'])
+    esc_hdd.init_sequence()
 
-    # do we want to stream sensor data to the web interface
+    # If enabled, connect to the web interface server.
     if config['enable_mission_control']:
         logger.info("connecting to mission control server...")
-        mc.connect() # connect to mission control server
+        mc.connect()  # connect to mission control server
 
     logger.info("starting main loop...")
-    #acc_array = np.zeros(3,1)
-    #mag_array = np.zeros(3,1)
+    # acc_array = np.zeros(3,1)
+    # mag_array = np.zeros(3,1)
     while True:
-        # fetch values from the IMU
-        imu.update_acc_reading() # update acc values
-        imu.update_mag_reading() # update mag values
+        # Fetch and calculate raw measure values from the IMU.
+        raw_acc_measure, raw_mag_measure = get_updated_sensor_data(imu)
 
-        acc_meas_raw = [imu.acc_y * -1, imu.acc_x, imu.acc_z * -1] # fix imu right hand rule
-        mag_meas_raw = [imu.mag_x, imu.mag_y * -1, imu.mag_z] # fix imu right hand rule
-
-        # generate the necessary vectors for TRIAD
         # TODO don't recreate numpy array every time, heavy memory computation
-        acc_meas = utils.to_unit_vector(acc_meas_raw) # acc unit vector
-        mag_meas = utils.to_unit_vector(mag_meas_raw) # mag unit vector
+        # Generate the necessary vectors for TRIAD.
+        acc_measure_uvec = utils.to_unit_vector(raw_acc_measure)
+        mag_measure_uvec = utils.to_unit_vector(raw_mag_measure)
 
-        #acc_array[:,0] = acc_meas_raw
-        #mag_array[:,0] = mag_meas_raw
-        #acc_meas = numpy.linalg.oth(acc_array)
-        #mag_meas = numpu.linalg.oth(mag_array)
+        # acc_array[:,0] = acc_meas_raw
+        # mag_array[:,0] = mag_meas_raw
+        # acc_meas = numpy.linalg.oth(acc_array)
+        # mag_meas = numpu.linalg.oth(mag_array)
 
-        acc_ref = np.array([0.0, 0.0, -1.0]) # acc ref vector
-        mag_ref = np.array([1.0, 0.0, 0.0]) # mag ref vector
+        # Create reference vectors for the accelerometer and magnetometer.
+        acc_refvec = np.array([0.0, 0.0, -1.0])
+        mag_refvec = np.array([1.0, 0.0, 0.0])
 
-        # make sure none of the vectors are zero vectors
-        if not (np.any(acc_meas) and np.any(mag_meas)):
+        # Make sure none of the vectors are zero vectors.
+        if not (np.any(acc_measure_uvec) and np.any(mag_measure_uvec)):
             logger.warn("measurement zero vector computed")
             continue
 
-        # compute the rotation matrix with the aforemened vectors
-        rotation = triad.triad(acc_meas, mag_meas, acc_ref, mag_ref)
+        # Compute the rotation matrix with the aforementioned vectors.
+        rotation = triad.triad(
+            acc_measure_uvec, mag_measure_uvec, acc_refvec, mag_refvec)
 
-        logger.debug("acc: {} mag: {} rotation: {}".format(acc_meas, mag_meas, rotation))
+        logger.debug("acc: {} mag: {} rotation: {}".format(
+            acc_measure_uvec, mag_measure_uvec, rotation))
 
-        # broadcast all data to mission control server
-        # this is the real-time gui thing
+        # Broadcast the raw measures to the mission control server.
         if config['enable_mission_control']:
-            mc.broadcast(acc_meas_raw, mag_meas_raw, rotation)
+            mc.broadcast(raw_acc_measure, raw_mag_measure, rotation)
 
-        # wait a sec before proceeding, this is our
-        # update frequency.
+        # Simulate update frequency through sleeping.
         time.sleep(0.05)
+
 
 if __name__ == "__main__":
     # https://stackoverflow.com/questions/22222818/how-to-printing-numpy-array-with-3-decimal-places
     np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
-
-    main() # begin main loop
+    main()  # begin main loop
