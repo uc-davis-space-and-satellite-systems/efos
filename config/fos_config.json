@@ -2,5 +2,7 @@
     "enable_mission_control": false,
     "speed_pin_esc": 12,
     "dir_pin1_esc": 13,
-    "dir_pin2_esc": 14
+    "dir_pin2_esc": 14,
+    "rx_pin": 1,
+    "tx_pin": 0
 }
