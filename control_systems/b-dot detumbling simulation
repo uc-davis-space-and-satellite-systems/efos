@@ -1,1 +1,10 @@
+%pylab inline 
+import pyIGRF
 
+#bmag is the instantaneous magnetic field vector of the Earth
+bmag = 
+
+#angRot is the angular rotation of the satellite 
+angrot = 
+#bdot is the time derivative of bmag 
+bdot = -(angRot)*bmag
