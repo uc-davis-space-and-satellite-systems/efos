@@ -1,3 +1,9 @@
+#Still need to do
+  #need to figure out how to model decaying angular rotation (goal: completely detumbled (angrot = 0) 
+  
+  #much later (for 3D simulation) will need precession. but not now
+#-----------------------------------------
+
 %pylab inline 
 import pyIGRF
 
