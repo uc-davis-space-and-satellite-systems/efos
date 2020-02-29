@@ -26,7 +26,7 @@ bmag = (bx**2 + by**2 + bz**2)**(1/2)
 negAngRot = [-ax, -ay, -az] 
 
 #bdot is the time derivative of bmag 
-bdot = cross(angrot, bVec)
+bdot = cross(negAngRot, bVec)
 print("This is the calculated B-Dot vector:  ", bdot)
 
 #this is the function for cross product, but apparently it's unnecessary. python seems to already do it??? 
@@ -42,22 +42,25 @@ print("This is the magnetic dipole vector:   ", magDipole)
  
  
 #This is going to be used to calculate stuff with the M = i * n * s equation
-s = 46.0       #S is the surface area enclosed by a turn of the coil's spiral in meters^2 
-n = 300.0      #n is the number of spires of the coil 
 
-ix = magDipole[0]/(n * s)    #current needed to push through magnetorquer on x-axis
+#This is for the magnetorquer for the x-axis
+sx = 46.0       #Sx is the surface area enclosed by a turn of the coil's spiral in meters^2 
+nx = 300.0      #nx is the number of spires of the coil 
+ix = magDipole[0]/(nx * sx)    #current needed to push through magnetorquer on x-axis
+print("This is the current needed to push through the magnetorquer for the x-axis:   ", ix) 
+
+#This is for the magnetorquer for the y-axis
+sy = 37.0       #Sy is the surface area enclosed by a turn of the coil's spiral in meters^2 
+ny = 320.0      #ny is the number of spires of the coil 
+iy = magDipole[0]/(ny * sy)    #current needed to push through magnetorquer on x-axis
+print("This is the current needed to push through the magnetorquer for the y-axis:   ", iy) 
+
+#This is for the magnetorquer for the z-axis
+sz = 46.0       #Sz is the surface area enclosed by a turn of the coil's spiral in meters^2 
+nz = 340.0      #nz is the number of spires of the coil 
+iz = magDipole[0]/(nz * sz)    #current needed to push through magnetorquer on z-axis
+print("This is the current needed to push through the magnetorquer for the z-axis:   ", iz) 
  
-#not needed ?? -----------------
-  #magnetorquer for x axis 
-  #magnettorquerX = [mx] 
-  #mx = ix * 
- 
-  #magnetorquer for Y axis 
-  #magnettorquerY = [my]
- 
-  #magnetorquer for Z axis 
-  #magnettorquerZ = [mz] 
- #------------------------------
  
 #this section calculates the control torque 
 
