@@ -10,5 +10,5 @@ class Shell:
 
     # Executes a given command
     def exec_shell_cmd(self, line):
-        self.logger.info("Executing shell command " + line)
+        self.logger.info("Executing shell command -> " + line)
         os.system(line)
