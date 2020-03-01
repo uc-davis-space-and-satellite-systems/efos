@@ -7,8 +7,6 @@ Class meant for processing images
 - Queues images by how percentage of darkness
 - Splits images into 16 'tiles' and sends each tile one by one,
   taking care that all tiles sent are of one image at a time.
-
-TODO: Implement logging (Global logging)
 """
 
 class Image_Processor:
@@ -52,7 +50,7 @@ class Image_Processor:
         percent = self.image_black_percentage(img_name)
 
         # Add this image to the priority queue
-        self.logger.debug("Adding image and sorting the queue")
+        self.logger.info("Adding image and sorting the queue")
         
         self.image_queue.append((img_name, percent))
         self.sort_tuple_list_(self.image_queue)
@@ -72,7 +70,7 @@ class Image_Processor:
                         str(j) + img_name[-3:])
                 
             except ValueError:
-                print("Image Queue is empty")
+                self.logger.warning("Image Queue is empty")
     
         ret_tile = self.tile_queue[0]
         self.tile_queue = self.tile_queue[1:-1]

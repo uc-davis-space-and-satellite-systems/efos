@@ -1,23 +1,17 @@
 import pigpio
 import json
 import base64
+import struct
 
 RX_PIN = 1
 TX_PIN = 0
 
 class Downlinker:
-	def __init__(self, pi):
-		self.pi = pigpio.pi()
+	def __init__(self, logger, pi):
+		self.pi = pi
+		self.logger = logger
 		self.data = {}
-	
-	# Adding a msg to the downlink data
-	def add_msg(self, msg):
-		if 'msgs' in self.data:
-			self.data['msgs'].append(msg)
-		else:
-			self.data['msgs'] = [msg]
-		
-		return True
+		self.packets = []
 
 	# Adding an image to the downlink data
 	def add_image(self, img_name):
@@ -38,10 +32,15 @@ class Downlinker:
 		# Automatically adds telemetry before it flushes the data
 		# TODO: Need to define (or learn what telemetry is)
 		return True
-	
+        
+	def package(self, packets):
+		# Package given data into small packets
+		# TODO: Algorithm needs to be developed
+		return True
+
 	def flush(self):
 		# Writes the downlink to the TX pin and sends it over
-		# TODO: Algorithm needs to be developed
+		# TODO: Algorithm needs to be developed	
 		return True
 
 
