@@ -1,120 +1,70 @@
-import logging
-import logging.config
-import time
-import signal
-import json
-import pysnooper  # Is this needed?
-import numpy as np
-import utils
-import triad
-import mission_control as mc
-from mpu9250 import MPU9250
+import pigpio
+import sys
+
+sys.path.append('../core/')
+from logger import Logger
+from shell import Shell
+
+sys.path.append('../control_systems/')
+from bdot import BDot
 from esc import ESC
 
-# Fetch configuration data from the config file. The file contains multiple
-# settings.
-config = None
-with open("./config/fos_config.json", 'r') as f:
-    config = json.load(f)
+sys.path.append('../determination/')
+from mpu9250 import MPU9250
 
-# Set up the global logger service.
-logging.config.fileConfig('./config/logging_config.ini')
-logger = logging.getLogger(__name__)
-if config['disable_logging']:
-    logging.disable(logging.CRITICAL)
+sys.path.append('../communications/')
+from downlink import Downlinker
+from uplink import Uplinker
+from image_processing import Image_Processor
 
-# Reconfigure the keyboard interrupt signal so that Ctrl-C kills the entire
-# program forcibly instead of letting the program stop on its own.
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-# @pysnooper.snoop(depth=1)
+sys.path.append('../modes/')
+from imaging import Imaging_Mode
+from priming import Priming_Mode
 
 
-def get_updated_sensor_data(imu: MPU9250) -> tuple:
-    """Gets updated raw measures of the acceloremter and magnetometer.
-    Parameters
-    ----------
-    x : MPU9250
-        An instance of the MPU9250 sensor class.
+class FOS:
+    def __init__(self, pi, logger, shell, uplinker, downlinker, image_processor, esc, mpu9250):
+        # Core
+        self.pi = pi
+        self.logger = logger
+        self.shell = shell
 
-    Returns
-    -------
-    tuple
-        A tuple of two vectors, represented by lists. Each list represents a
-        vector [x, y, z]. The format is (accelerometer, magnetometer).
-    """
+        # Communications
+        self.uplinker = uplinker
+        self.downlinker = downlinker
+        self.image_processor = image_processor
 
-    # Get new readings from the accelerometer and magnetometer.
-    imu.update_acc_reading()
-    imu.update_mag_reading()
+        # Control Systems
+        self.esc = esc
 
-    # Calculate the raw measures by fixing the imu right hand rule.
-    raw_acc_measure = [imu.acc_y * -1, imu.acc_x, imu.acc_z * -1]
-    raw_mag_measure = [imu.mag_x, imu.mag_y * -1, imu.mag_z]
+        # Determination
+        self.mpu9250 = mpu9250
 
-    # Return a tuple of the calculated values.
-    return (raw_acc_measure, raw_mag_measure)
+        # Modes
+        self.priming_mode = Priming_Mode(self.esc)
+        self.imaging_mode = Imaging_Mode(self.image_processor)
 
+        self.modes = [self.priming_mode, self.imaging_mode]
 
-def main():
-    logger.debug("Initializing the imu...")
+        # Initialize it to be set to the priming mode
+        self.current_mode = 0 
 
-    # Initialize the imu.
-    imu = MPU9250()
-
-    # Initialize the speed controller.
-    logger.debug("initializing esc...")
-    esc_hdd = ESC(config['speed_pin_esc'],
-                  config['dir_pin1_esc'], config['dir_pin2_esc'])
-    esc_hdd.init_sequence()
-
-    # If enabled, connect to the web interface server.
-    if config['enable_mission_control']:
-        logger.info("connecting to mission control server...")
-        mc.connect()  # connect to mission control server
-
-    logger.info("starting main loop...")
-    # acc_array = np.zeros(3,1)
-    # mag_array = np.zeros(3,1)
-    while True:
-        # Fetch and calculate raw measure values from the IMU.
-        raw_acc_measure, raw_mag_measure = get_updated_sensor_data(imu)
-
-        # TODO don't recreate numpy array every time, heavy memory computation
-        # Generate the necessary vectors for TRIAD.
-        acc_measure_uvec = utils.to_unit_vector(raw_acc_measure)
-        mag_measure_uvec = utils.to_unit_vector(raw_mag_measure)
-
-        # acc_array[:,0] = acc_meas_raw
-        # mag_array[:,0] = mag_meas_raw
-        # acc_meas = numpy.linalg.oth(acc_array)
-        # mag_meas = numpu.linalg.oth(mag_array)
-
-        # Create reference vectors for the accelerometer and magnetometer.
-        acc_refvec = np.array([0.0, 0.0, -1.0])
-        mag_refvec = np.array([1.0, 0.0, 0.0])
-
-        # Make sure none of the vectors are zero vectors.
-        if not (np.any(acc_measure_uvec) and np.any(mag_measure_uvec)):
-            logger.warn("measurement zero vector computed")
-            continue
-
-        # Compute the rotation matrix with the aforementioned vectors.
-        rotation = triad.triad(
-            acc_measure_uvec, mag_measure_uvec, acc_refvec, mag_refvec)
-
-        logger.debug("acc: {} mag: {} rotation: {}".format(
-            acc_measure_uvec, mag_measure_uvec, rotation))
-
-        # Broadcast the raw measures to the mission control server.
-        if config['enable_mission_control']:
-            mc.broadcast(raw_acc_measure, raw_mag_measure, rotation)
-
-        # Simulate update frequency through sleeping.
-        time.sleep(0.05)
+    def shift_mode(self, mode):
+        self.current_mode = self.modes[mode]
+    
 
 
 if __name__ == "__main__":
-    # https://stackoverflow.com/questions/22222818/how-to-printing-numpy-array-with-3-decimal-places
-    np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
-    main()  # begin main loop
+    # Core Stuff
+    pi = pigpio.pi()
+    logger = Logger()
+    shell = Shell()
+
+    uplinker = Uplinker(logger, shell, pi)
+    downlinker = Downlinker(logger, pi)
+    image_processor = Image_Processor(logger)
+
+    esc = ESC()
+    mpu9250 = MPU9250(pi)
+
+    fos = FOS(pi, logger, shell, uplinker, downlinker, image_processor, esc, mpu9250)
