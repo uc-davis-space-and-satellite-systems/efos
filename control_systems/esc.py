@@ -1,4 +1,4 @@
-import pigpio, time
+import time
 
 # define some constants below
 PWM_RANGE_MAX  = 40000   # maximum writable pwm value
@@ -6,18 +6,17 @@ PWM_RANGE_MIN  = 26400   # minimum writable pwm value
 PWM_FREQ       = 500     # frequency of pwm pulses (500 pulses / s)
 PWM_READ_DELAY = 2       # delay in seconds after setting duty cycle
 
-pi = pigpio.pi() # TODO should this be a global variable? it should!!
-
 class ESC:
-    def __init__(self, speed_pin, dir_pin1, dir_pin2):
+    def __init__(self, speed_pin, dir_pin1, dir_pin2, pi):
         # define physical pin numbers
         self.speed_pin = speed_pin
         self.dir_pin1 = dir_pin1
         self.dir_pin2 = dir_pin2
+        self.pi = pi
 
         # set pwm max range and frequency
-        pi.set_PWM_range(self.speed_pin, PWM_RANGE_MAX)
-        pi.set_PWM_frequency(self.speed_pin, PWM_FREQ)
+        self.pi.set_PWM_range(self.speed_pin, PWM_RANGE_MAX)
+        self.pi.set_PWM_frequency(self.speed_pin, PWM_FREQ)
 
     # this is needed because the ESC we are using needs
     # a specific sequence of signals to initialize it.
@@ -31,7 +30,7 @@ class ESC:
     # write the pwm duty cycle to the speed pin
     def set_dutycycle_percentage(self, percent):
         adjusted_dutycycle = (PWM_RANGE_MAX - PWM_RANGE_MIN) * percent / 100 + PWM_RANGE_MIN - 1
-        pi.set_PWM_dutycycle(self.speed_pin, adjusted_dutycycle)
+        self.pi.set_PWM_dutycycle(self.speed_pin, adjusted_dutycycle)
         time.sleep(PWM_READ_DELAY)
 
     # placeholder function, not implemented yet
@@ -40,10 +39,14 @@ class ESC:
 
     # shutdown the GPIO (pwm) library
     def shutdown_sequence(self):
-        pi.stop()
+        self.pi.stop()
+
+"""
+Test Code
 
 if __name__ == "__main__":
-    esc = ESC(12, -1, -1) # direction not implemented yet
+    pi = pigpio.pi()
+    esc = ESC(12, -1, -1, pi) # direction not implemented yet
     esc.init_sequence()
     while True:
         try:
@@ -55,3 +58,5 @@ if __name__ == "__main__":
             print("Error: percentage ranges from 0 to 100 inclusive.")
             break
         pi.stop()
+
+"""
