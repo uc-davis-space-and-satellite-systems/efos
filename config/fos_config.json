@@ -1,8 +1,12 @@
-{
-    "enable_mission_control": false,
+{   
     "speed_pin_esc": 12,
     "dir_pin1_esc": 13,
     "dir_pin2_esc": 14,
     "rx_pin": 1,
-    "tx_pin": 0
+    "tx_pin": 0,
+
+    "log_level": "info",
+
+    "k_bdot": 1,
+    "surface_area_bdot": 1.0
 }
