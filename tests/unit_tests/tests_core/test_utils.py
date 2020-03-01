@@ -1,4 +1,7 @@
 import random
+import sys
+
+sys.path.append("../core/")
 import utils
 
 NUM_TESTS = 100
