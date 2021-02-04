@@ -1,0 +1,26 @@
+def systemsCheck()
+{
+   checks if everything is ok....
+   return checks
+}
+
+
+HDDRW_Experiment_Mode()
+{
+  bool check = systemsCheck();
+  if(check == false)
+  {
+     troubleShoot();
+  }
+  data_A = Test A-counterclockwise();
+  bool smib = SMIB();
+  if(smbib == false)
+  {
+    troubleShoot();
+  }
+  data_B = Test B-counterclockwise();
+  transmission_Task();
+  safeHold();
+
+
+}
