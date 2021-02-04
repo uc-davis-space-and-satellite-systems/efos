@@ -1,0 +1,58 @@
+
+//Deployment
+
+def deploy()
+{
+   error = power sat and launch control systems;
+   return error;
+}
+
+def depoyAnten()
+{
+   error = deploy antenna;
+   return error; 
+
+}
+
+def reboot()
+{
+   error = reboot sat;
+   return error;
+}
+
+def troubleshoot()
+{
+   watchdog_code;
+   error = reboot();
+   return error;
+}
+//error are codes ranging below 0, 0 refers to nromal
+
+Deployment(log)
+{
+    while(log == powerUp)
+    {
+       int error = deploy();
+
+       int i = 0;
+       while(error < 0 && i < 2)
+       {
+         error = reboot();
+         if statments to find type of error;
+         i++;
+         log = log + logger(error);
+       }
+       while(error < 0)
+       {
+          error = troubleshoot();
+          if statments to find type of error;
+          log = log + logger(error);
+       }
+   log = log + logger(error);
+ }
+
+    
+
+
+
+}
