@@ -12,11 +12,11 @@ if(bounds == false)
 }
 else if(bounds == true)
 {
-  if(MRW.is_disable())
+  if(MRW_Imaging.is_disable())
   {
      HDDRW_Imaging();
   }
-  else if(HDDRW_Imaging.is_disable() && !MRW.is_disable())
+  else if(HDDRW_Imaging.is_disable() && !MRW_Imaging.is_disable())
   {
     MRW();
   }
