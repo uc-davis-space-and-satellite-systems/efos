@@ -1,0 +1,32 @@
+
+
+SafeHold(log)
+{
+
+transmit_telemtry();
+bool bounds = SMIB();
+if(bounds == false)
+{
+	TroubleShoot();
+
+}
+else if(bounds == true)
+{
+  if(MRW_Imaging.is_disable())
+  {
+     HDDRW_Imaging();
+  }
+  else if(HDDRW_Imaging.is_disable() && !MRW_Imaging.is_disable())
+  {
+    MRW();
+  }
+  else if(!HDDRW_Imaging.is_disable()) 
+  {
+     HDDRW_experiment_mode();
+  }
+}
+
+
+
+
+}
